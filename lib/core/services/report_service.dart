@@ -1,153 +1,237 @@
-// lib/core/services/report_service.dart
+// lib/core/services/report_service_enhanced.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/report_model.dart';
 import '../models/empleado_model.dart';
 
-/// Servicio para manejar reportes
-class ReportService {
+class ReportServiceEnhanced {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Crear un nuevo reporte
-  Future<bool> createReport(ReportModel report) async {
+  /// ✅ Crear reporte con validaciones completas
+  Future<ReportResult> createReport(ReportModel report) async {
     try {
-      // Validar que el empleado existe y está activo
-      final empleadoExists = await _validateEmployee(report.empleadoCod);
-      if (!empleadoExists) {
-        throw Exception(
-            'El empleado con código ${report.empleadoCod} no existe o no está activo');
+      print('📝 Creando reporte para empleado ${report.empleadoCod}');
+
+      // 1. Validar empleado
+      final empleadoValid = await _validateEmployee(report.empleadoCod);
+      if (!empleadoValid.isValid) {
+        return ReportResult.error(empleadoValid.message);
       }
 
-      // Insertar el reporte
-      await _supabase.from('reports').insert(report.toMap());
+      // 2. Validar datos del reporte
+      final validation = _validateReportData(report);
+      if (!validation.isValid) {
+        return ReportResult.error(validation.message);
+      }
 
-      return true;
-    } catch (e) {
-      print('Error creando reporte: $e');
-      rethrow;
+      // 3. Insertar en Supabase
+      final data = report.toMap();
+      print('📤 Enviando datos: $data');
+
+      final response =
+          await _supabase.from('reports').insert(data).select().single();
+
+      print('✅ Reporte creado exitosamente: ${response['id']}');
+
+      return ReportResult.success(
+        'Reporte ${report.status == 'borrador' ? 'guardado' : 'enviado'} exitosamente',
+        ReportModel.fromMap(response),
+      );
+    } catch (e, stackTrace) {
+      print('❌ Error creando reporte: $e');
+      print('📍 Stack trace: $stackTrace');
+
+      // Analizar tipo de error
+      if (e.toString().contains('foreign key')) {
+        return ReportResult.error('El empleado seleccionado no es válido');
+      } else if (e.toString().contains('violates check constraint')) {
+        return ReportResult.error('Los datos del reporte no son válidos');
+      } else {
+        return ReportResult.error('Error de conexión. Intenta nuevamente');
+      }
     }
   }
 
-  /// Obtener reportes del supervisor actual
+  /// 🔍 Validar empleado existe y está activo
+  Future<ValidationResult> _validateEmployee(int empleadoCod) async {
+    try {
+      final response = await _supabase
+          .from('empleados')
+          .select('cod, nombres_completos, es_activo, fecha_salida')
+          .eq('cod', empleadoCod)
+          .maybeSingle();
+
+      if (response == null) {
+        return ValidationResult.invalid(
+            'Empleado con código $empleadoCod no encontrado');
+      }
+
+      if (response['es_activo'] != true) {
+        return ValidationResult.invalid(
+            'El empleado ${response['nombres_completos']} no está activo');
+      }
+
+      if (response['fecha_salida'] != null) {
+        return ValidationResult.invalid(
+            'El empleado ${response['nombres_completos']} tiene fecha de salida');
+      }
+
+      return ValidationResult.valid();
+    } catch (e) {
+      return ValidationResult.invalid('Error validando empleado: $e');
+    }
+  }
+
+  /// ✅ Validar datos del reporte
+  ValidationResult _validateReportData(ReportModel report) {
+    if (report.descripcion.trim().isEmpty) {
+      return ValidationResult.invalid('La descripción es obligatoria');
+    }
+
+    if (report.descripcion.trim().length < 10) {
+      return ValidationResult.invalid(
+          'La descripción debe tener al menos 10 caracteres');
+    }
+
+    if (!['falta', 'tardanza', 'conducta'].contains(report.tipoReporte)) {
+      return ValidationResult.invalid('Tipo de reporte no válido');
+    }
+
+    if (report.fechaIncidente.isAfter(DateTime.now())) {
+      return ValidationResult.invalid(
+          'La fecha del incidente no puede ser futura');
+    }
+
+    final monthsAgo = DateTime.now().subtract(const Duration(days: 30));
+    if (report.fechaIncidente.isBefore(monthsAgo)) {
+      return ValidationResult.invalid(
+          'El incidente debe haber ocurrido en los últimos 30 días');
+    }
+
+    return ValidationResult.valid();
+  }
+
+  /// 📊 Obtener reportes con información completa
   Future<List<ReportModel>> getMyReports(String supervisorId) async {
     try {
+      print('📋 Obteniendo reportes para supervisor: $supervisorId');
+
       final response = await _supabase
           .from('reports')
           .select()
           .eq('supervisor_id', supervisorId)
           .order('created_at', ascending: false);
 
+      print('✅ Reportes encontrados: ${response.length}');
+
       return response
           .map<ReportModel>((data) => ReportModel.fromMap(data))
           .toList();
     } catch (e) {
-      print('Error obteniendo reportes: $e');
+      print('❌ Error obteniendo reportes: $e');
       return [];
     }
   }
 
-  /// Obtener un reporte específico por ID
-  Future<ReportModel?> getReportById(String reportId) async {
+  /// 📈 Estadísticas detalladas
+  Future<ReportStats> getDetailedStats(String supervisorId) async {
     try {
-      final response =
-          await _supabase.from('reports').select().eq('id', reportId).single();
+      final reports = await getMyReports(supervisorId);
 
-      return ReportModel.fromMap(response);
+      final stats = ReportStats(
+        total: reports.length,
+        borradores: reports.where((r) => r.status == 'borrador').length,
+        enviados: reports.where((r) => r.status == 'enviado').length,
+        aprobados: reports.where((r) => r.status == 'aprobado').length,
+        rechazados: reports.where((r) => r.status == 'rechazado').length,
+        procesados: reports.where((r) => r.status == 'procesado').length,
+        porTipo: {
+          'falta': reports.where((r) => r.tipoReporte == 'falta').length,
+          'tardanza': reports.where((r) => r.tipoReporte == 'tardanza').length,
+          'conducta': reports.where((r) => r.tipoReporte == 'conducta').length,
+        },
+        ultimoReporte: reports.isNotEmpty ? reports.first.createdAt : null,
+      );
+
+      return stats;
     } catch (e) {
-      print('Error obteniendo reporte: $e');
-      return null;
+      print('Error obteniendo estadísticas: $e');
+      return ReportStats.empty();
     }
   }
 
-  /// Actualizar un reporte existente
-  Future<bool> updateReport(ReportModel report) async {
+  /// 🔄 Actualizar reporte existente
+  Future<ReportResult> updateReport(ReportModel report) async {
+    try {
+      // Solo permitir actualizar borradores
+      if (report.status != 'borrador') {
+        return ReportResult.error('Solo se pueden editar reportes en borrador');
+      }
+
+      // Validar datos
+      final validation = _validateReportData(report);
+      if (!validation.isValid) {
+        return ReportResult.error(validation.message);
+      }
+
+      final data = report.toMap();
+      data['updated_at'] = DateTime.now().toIso8601String();
+
+      await _supabase.from('reports').update(data).eq('id', report.id);
+
+      return ReportResult.success('Reporte actualizado exitosamente', report);
+    } catch (e) {
+      print('❌ Error actualizando reporte: $e');
+      return ReportResult.error('Error actualizando reporte: $e');
+    }
+  }
+
+  /// 📤 Enviar reporte (cambiar de borrador a enviado)
+  Future<ReportResult> submitReport(String reportId) async {
     try {
       await _supabase
           .from('reports')
-          .update(report.toMap())
-          .eq('id', report.id);
+          .update({
+            'status': 'enviado',
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', reportId)
+          .eq('status', 'borrador'); // Solo si es borrador
 
-      return true;
+      return ReportResult.success('Reporte enviado exitosamente', null);
     } catch (e) {
-      print('Error actualizando reporte: $e');
-      return false;
+      return ReportResult.error('Error enviando reporte: $e');
     }
   }
 
-  /// Cambiar estado de un reporte
-  Future<bool> updateReportStatus(
-    String reportId,
-    String newStatus, {
-    String? comentarios,
-    String? reviewedBy,
-  }) async {
-    try {
-      final updates = <String, dynamic>{
-        'status': newStatus,
-        'updated_at': DateTime.now().toIso8601String(),
-      };
-
-      if (comentarios != null) {
-        updates['comentarios_gerencia'] = comentarios;
-      }
-
-      if (reviewedBy != null) {
-        updates['reviewed_by'] = reviewedBy;
-        updates['fecha_revision'] = DateTime.now().toIso8601String();
-      }
-
-      await _supabase.from('reports').update(updates).eq('id', reportId);
-
-      return true;
-    } catch (e) {
-      print('Error actualizando estado: $e');
-      return false;
-    }
-  }
-
-  /// Eliminar un reporte (solo borradores)
-  Future<bool> deleteReport(String reportId) async {
+  /// 🗑️ Eliminar reporte (solo borradores)
+  Future<ReportResult> deleteReport(String reportId) async {
     try {
       await _supabase
           .from('reports')
           .delete()
           .eq('id', reportId)
-          .eq('status', 'borrador'); // Solo permitir eliminar borradores
+          .eq('status', 'borrador');
 
-      return true;
+      return ReportResult.success('Reporte eliminado exitosamente', null);
     } catch (e) {
-      print('Error eliminando reporte: $e');
-      return false;
+      return ReportResult.error('Error eliminando reporte: $e');
     }
   }
 
-  /// Obtener estadísticas de reportes
+  /// 📊 Obtener estadísticas básicas (para compatibilidad)
   Future<Map<String, int>> getReportStats(String supervisorId) async {
     try {
-      // Obtener todos los reportes del supervisor
-      final response = await _supabase
-          .from('reports')
-          .select('status')
-          .eq('supervisor_id', supervisorId);
-
-      // Contar por estado
-      final stats = <String, int>{
-        'total': response.length,
-        'borrador': 0,
-        'enviado': 0,
-        'aprobado': 0,
-        'rechazado': 0,
-        'procesado': 0,
+      final stats = await getDetailedStats(supervisorId);
+      return {
+        'total': stats.total,
+        'borrador': stats.borradores,
+        'enviado': stats.enviados,
+        'aprobado': stats.aprobados,
+        'rechazado': stats.rechazados,
+        'procesado': stats.procesados,
       };
-
-      for (var report in response) {
-        final status = report['status'] as String;
-        stats[status] = (stats[status] ?? 0) + 1;
-      }
-
-      return stats;
     } catch (e) {
-      print('Error obteniendo estadísticas: $e');
       return {
         'total': 0,
         'borrador': 0,
@@ -159,25 +243,7 @@ class ReportService {
     }
   }
 
-  /// Obtener reportes por empleado
-  Future<List<ReportModel>> getReportsByEmployee(int empleadoCod) async {
-    try {
-      final response = await _supabase
-          .from('reports')
-          .select()
-          .eq('empleado_cod', empleadoCod)
-          .order('fecha_incidente', ascending: false);
-
-      return response
-          .map<ReportModel>((data) => ReportModel.fromMap(data))
-          .toList();
-    } catch (e) {
-      print('Error obteniendo reportes por empleado: $e');
-      return [];
-    }
-  }
-
-  /// Buscar reportes con filtros
+  /// 🔍 Buscar reportes con filtros
   Future<List<ReportModel>> searchReports({
     String? supervisorId,
     String? tipoReporte,
@@ -225,89 +291,61 @@ class ReportService {
       return [];
     }
   }
+}
 
-  /// Validar que un empleado existe y está activo
-  Future<bool> _validateEmployee(int empleadoCod) async {
-    try {
-      final response = await _supabase
-          .from('empleados')
-          .select('cod')
-          .eq('cod', empleadoCod)
-          .eq('es_activo', true)
-          .maybeSingle();
+// Clases de apoyo
 
-      return response != null;
-    } catch (e) {
-      print('Error validando empleado: $e');
-      return false;
-    }
-  }
+class ReportResult {
+  final bool success;
+  final String message;
+  final ReportModel? report;
 
-  /// Obtener información del empleado para el reporte
-  Future<EmpleadoModel?> getEmployeeInfo(int empleadoCod) async {
-    try {
-      final response = await _supabase
-          .from('empleados')
-          .select(
-              'cod, cedula, nombres_completos, nomdep, fecha_ingreso, fecha_salida, es_activo')
-          .eq('cod', empleadoCod)
-          .eq('es_activo', true)
-          .single();
+  ReportResult.success(this.message, this.report) : success = true;
+  ReportResult.error(this.message)
+      : success = false,
+        report = null;
+}
 
-      return EmpleadoModel.fromMap(response);
-    } catch (e) {
-      print('Error obteniendo info del empleado: $e');
-      return null;
-    }
-  }
+class ValidationResult {
+  final bool isValid;
+  final String message;
 
-  /// Obtener reportes pendientes de revisión (para gerencia/RRHH)
-  Future<List<ReportModel>> getPendingReports() async {
-    try {
-      final response = await _supabase
-          .from('reports')
-          .select()
-          .eq('status', 'enviado')
-          .order('created_at', ascending: true); // Los más antiguos primero
+  ValidationResult.valid()
+      : isValid = true,
+        message = '';
+  ValidationResult.invalid(this.message) : isValid = false;
+}
 
-      return response
-          .map<ReportModel>((data) => ReportModel.fromMap(data))
-          .toList();
-    } catch (e) {
-      print('Error obteniendo reportes pendientes: $e');
-      return [];
-    }
-  }
+class ReportStats {
+  final int total;
+  final int borradores;
+  final int enviados;
+  final int aprobados;
+  final int rechazados;
+  final int procesados;
+  final Map<String, int> porTipo;
+  final DateTime? ultimoReporte;
 
-  /// Verificar si un supervisor puede editar un reporte
-  bool canEditReport(ReportModel report, String currentUserId) {
-    return report.supervisorId == currentUserId && report.status == 'borrador';
-  }
+  ReportStats({
+    required this.total,
+    required this.borradores,
+    required this.enviados,
+    required this.aprobados,
+    required this.rechazados,
+    required this.procesados,
+    required this.porTipo,
+    this.ultimoReporte,
+  });
 
-  /// Enviar reporte (cambiar de borrador a enviado)
-  Future<bool> submitReport(String reportId) async {
-    return await updateReportStatus(reportId, 'enviado');
-  }
-
-  /// Aprobar reporte (para gerencia/RRHH)
-  Future<bool> approveReport(String reportId, String reviewedBy,
-      {String? comentarios}) async {
-    return await updateReportStatus(
-      reportId,
-      'aprobado',
-      comentarios: comentarios,
-      reviewedBy: reviewedBy,
-    );
-  }
-
-  /// Rechazar reporte (para gerencia/RRHH)
-  Future<bool> rejectReport(
-      String reportId, String reviewedBy, String comentarios) async {
-    return await updateReportStatus(
-      reportId,
-      'rechazado',
-      comentarios: comentarios,
-      reviewedBy: reviewedBy,
+  factory ReportStats.empty() {
+    return ReportStats(
+      total: 0,
+      borradores: 0,
+      enviados: 0,
+      aprobados: 0,
+      rechazados: 0,
+      procesados: 0,
+      porTipo: {'falta': 0, 'tardanza': 0, 'conducta': 0},
     );
   }
 }
