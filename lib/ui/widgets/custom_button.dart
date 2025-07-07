@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-/// Botón personalizado hermoso con gradientes y animaciones
+/// Botón personalizado hermoso con gradientes y animaciones - CORREGIDO
 class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -28,7 +28,8 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final primaryColor = color ?? const Color(0xFF1E3A8A);
-    final secondaryColor = color?.withValues(alpha: 0.8) ?? const Color(0xFF3B82F6);
+    final secondaryColor =
+        color?.withOpacity(0.8) ?? const Color(0xFF3B82F6); // CORREGIDO
 
     return Container(
       width: width ?? double.infinity,
@@ -49,9 +50,9 @@ class CustomButton extends StatelessWidget {
               ),
         boxShadow: [
           BoxShadow(
-            color: (isLoading || onPressed == null) 
-                ? Colors.grey.withValues(alpha: 0.3)
-                : primaryColor.withValues(alpha: 0.3),
+            color: (isLoading || onPressed == null)
+                ? Colors.grey.withOpacity(0.3) // CORREGIDO
+                : primaryColor.withOpacity(0.3), // CORREGIDO
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -82,7 +83,7 @@ class CustomButton extends StatelessWidget {
                       children: [
                         if (icon != null) ...[
                           Icon(
-                            icon, 
+                            icon,
                             color: textColor ?? Colors.white,
                             size: 20,
                           ),
@@ -107,7 +108,7 @@ class CustomButton extends StatelessWidget {
   }
 }
 
-/// Botón secundario (outline)
+/// Botón secundario (outline) - CORREGIDO
 class CustomOutlineButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -164,7 +165,7 @@ class CustomOutlineButton extends StatelessWidget {
                       children: [
                         if (icon != null) ...[
                           Icon(
-                            icon, 
+                            icon,
                             color: primaryColor,
                             size: 20,
                           ),
