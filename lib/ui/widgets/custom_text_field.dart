@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-/// Campo de texto personalizado hermoso
+/// Campo de texto personalizado hermoso - CORREGIDO
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
@@ -43,17 +43,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: _isFocused 
-                ? const Color(0xFF1E3A8A).withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.05),
+            color: _isFocused
+                ? const Color(0xFF1E3A8A).withOpacity(0.1) // CORREGIDO
+                : Colors.black.withOpacity(0.05), // CORREGIDO
             blurRadius: _isFocused ? 15 : 10,
             offset: const Offset(0, 5),
           ),
         ],
         border: Border.all(
-          color: _isFocused 
-              ? const Color(0xFF1E3A8A) 
-              : Colors.transparent,
+          color: _isFocused ? const Color(0xFF1E3A8A) : Colors.transparent,
           width: 2,
         ),
       ),
@@ -78,17 +76,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
             labelText: widget.label,
             hintText: widget.hint,
             prefixIcon: Icon(
-              widget.icon, 
-              color: _isFocused 
-                  ? const Color(0xFF1E3A8A) 
-                  : Colors.grey.shade600,
+              widget.icon,
+              color:
+                  _isFocused ? const Color(0xFF1E3A8A) : Colors.grey.shade600,
             ),
             suffixIcon: widget.isPassword
                 ? IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility : Icons.visibility_off,
-                      color: _isFocused 
-                          ? const Color(0xFF1E3A8A) 
+                      color: _isFocused
+                          ? const Color(0xFF1E3A8A)
                           : Colors.grey.shade600,
                     ),
                     onPressed: () {
@@ -106,9 +103,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
             fillColor: widget.enabled ? Colors.white : Colors.grey.shade100,
             contentPadding: const EdgeInsets.all(16),
             labelStyle: TextStyle(
-              color: _isFocused 
-                  ? const Color(0xFF1E3A8A) 
-                  : Colors.grey.shade600,
+              color:
+                  _isFocused ? const Color(0xFF1E3A8A) : Colors.grey.shade600,
             ),
             hintStyle: TextStyle(
               color: Colors.grey.shade400,
