@@ -6,7 +6,7 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/models/report_model.dart';
 import '../../core/services/report_service.dart';
 import '../widgets/custom_button.dart';
-import 'create_report_screen.dart';
+import 'create_report_screen_enhanced.dart';
 import 'login_screen.dart';
 
 /// Pantalla principal del sistema
@@ -472,7 +472,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _navigateToCreateReport() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const CreateReportScreen()),
+      MaterialPageRoute(builder: (context) => const CreateReportEnhanced(),
     );
 
     if (result == true) {
