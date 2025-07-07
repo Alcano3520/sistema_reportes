@@ -1,59 +1,35 @@
 name: sistema_reportes
-description: Sistema de reportes con sincronización offline
+description: "Sistema de reportes para recursos humanos"
 publish_to: 'none'
+
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.0.0 <4.0.0'
-  flutter: ">=3.10.0"
+  sdk: '>=3.1.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  # 🔐 Supabase (Backend)
-  supabase_flutter: ^2.3.4
-
-  # 💾 Base de datos local
-  sqflite: ^2.3.0
-  path: ^1.8.3
-
-  # 🎨 UI/UX
-  cupertino_icons: ^1.0.2
-  google_fonts: ^6.1.0
-  flutter_svg: ^2.0.9
-  animations: ^2.0.8
-
-  # 📝 Formularios y validación
-  flutter_form_builder: ^10.1.0
-  form_builder_validators: ^11.2.0
-
-  # 📷 Imágenes y archivos
-  image_picker: ^1.0.4
-  signature: ^6.3.0
-
-  # 🌐 Conectividad
-  connectivity_plus: ^6.1.4
-
-  # 🔍 Autocompletado
-  flutter_typeahead: ^5.2.0
-
-  # 📊 Estado
-  provider: ^6.1.1
-
-  # 🛠️ Utilidades
-  intl: ^0.20.2
-  uuid: ^4.2.1
+  
+  # 🔥 Dependencias principales
+  supabase_flutter: ^2.5.6
+  provider: ^6.1.2
+  uuid: ^4.4.0
+  
+  # 🎨 UI y iconos
+  cupertino_icons: ^1.0.6
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
+
+# ✅ ASSETS COMENTADOS TEMPORALMENTE
+# flutter:
+#   uses-material-design: true
+#   assets:
+#     - assets/images/
+#     - assets/icons/
 
 flutter:
   uses-material-design: true
-  
-  # 📁 Assets
-  assets:
-    - assets/images/
-    - assets/icons/
