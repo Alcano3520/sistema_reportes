@@ -7,7 +7,7 @@ import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import 'home_screen.dart';
 
-/// Pantalla de inicio de sesión hermosa
+/// Pantalla de inicio de sesión hermosa - CORREGIDA
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen>
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Colors.black.withOpacity(0.1), // CORREGIDO
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -222,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen>
             margin: const EdgeInsets.only(top: 20),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
+              color: Colors.red.withOpacity(0.1), // CORREGIDO
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.red.shade300),
             ),

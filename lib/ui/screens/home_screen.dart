@@ -6,10 +6,10 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/models/report_model.dart';
 import '../../core/services/report_service.dart';
 import '../widgets/custom_button.dart';
-import 'create_report_screen_enhanced.dart';
+import 'create_report_enhanced.dart'; // CAMBIADO A ENHANCED
 import 'login_screen.dart';
 
-/// Pantalla principal del sistema
+/// Pantalla principal del sistema - CORREGIDA
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -30,20 +30,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
+
     try {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final reportService = ReportService();
+      final reportService = ReportService(); // CORREGIDO
 
-      // Cargar reportes y estadísticas en paralelo
-      final results = await Future.wait([
-        reportService.getMyReports(authProvider.currentUser!.id),
-        reportService.getReportStats(authProvider.currentUser!.id),
-      ]);
+      // Cargar reportes y estadísticas - CORREGIDO
+      final reports =
+          await reportService.getMyReports(authProvider.currentUser!.id);
+      final stats =
+          await reportService.getReportStats(authProvider.currentUser!.id);
 
-      setState(() {
-        _reports = results[0] as List<ReportModel>;
-        _stats = results[1] as Map<String, int>;
-      });
+      if (mounted) {
+        setState(() {
+          _reports = reports;
+          _stats = stats;
+        });
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -51,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -111,9 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildUserHeader(user) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E3A8A),
-        borderRadius: const BorderRadius.only(
+      decoration: const BoxDecoration(
+        color: Color(0xFF1E3A8A),
+        borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
@@ -163,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: _getRoleColor(user.role).withValues(alpha: 0.2),
+                        color: _getRoleColor(user.role).withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: _getRoleColor(user.role)),
                       ),
@@ -222,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -342,7 +347,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -351,7 +356,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         leading: CircleAvatar(
-          backgroundColor: statusColor.withValues(alpha: 0.2),
+          backgroundColor: statusColor.withOpacity(0.2),
           child: Icon(statusIcon, color: statusColor),
         ),
         title: Text(
@@ -472,7 +477,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _navigateToCreateReport() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const CreateReportEnhanced(),
+      MaterialPageRoute(
+          builder: (context) => const CreateReportEnhanced()), // CORREGIDO
     );
 
     if (result == true) {

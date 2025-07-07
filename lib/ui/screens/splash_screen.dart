@@ -6,7 +6,7 @@ import '../../core/providers/auth_provider.dart';
 import 'login_screen.dart';
 import 'home_screen.dart';
 
-/// Pantalla de splash con animaciones
+/// Pantalla de splash con animaciones - CORREGIDA
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -127,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
                         borderRadius: BorderRadius.circular(30),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.2),
+                            color: Colors.black.withOpacity(0.2), // CORREGIDO
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -179,7 +179,7 @@ class _SplashScreenState extends State<SplashScreen>
               width: 200,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: Colors.white.withOpacity(0.3), // CORREGIDO
                 borderRadius: BorderRadius.circular(2),
               ),
               child: AnimatedBuilder(
