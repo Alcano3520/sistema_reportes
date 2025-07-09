@@ -1,6 +1,5 @@
 name: sistema_reportes
 description: Sistema de reportes con sincronización offline
-publish_to: 'none'
 version: 1.0.0+1
 
 environment:
@@ -10,50 +9,56 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # 🔐 Supabase (Backend)
+  
+  # Localizaciones - AGREGADO PARA SOLUCIONAR ERROR
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.19.0
+  
+  # Supabase (Backend)
   supabase_flutter: ^2.3.4
-
-  # 💾 Base de datos local
+  
+  # Base de datos local
   sqflite: ^2.3.0
   path: ^1.8.3
-
-  # 🎨 UI/UX
+  
+  # UI/UX
   cupertino_icons: ^1.0.2
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.9
   animations: ^2.0.8
-
-  # 📝 Formularios y validación
-  flutter_form_builder: ^10.1.0
-  form_builder_validators: ^11.2.0
-
-  # 📷 Imágenes y archivos
+  
+  # Formularios y validación
+  flutter_form_builder: ^9.1.1
+  form_builder_validators: ^9.1.0
+  
+  # Imágenes y archivos
   image_picker: ^1.0.4
-  signature: ^6.3.0
-
-  # 🌐 Conectividad
-  connectivity_plus: ^6.1.4
-
-  # 🔍 Autocompletado
-  flutter_typeahead: ^5.2.0
-
-  # 📊 Estado
+  signature: ^5.4.0
+  
+  # Conectividad
+  connectivity_plus: ^5.0.2
+  
+  # Autocompletado
+  flutter_typeahead: ^4.8.0
+  
+  # Estado
   provider: ^6.1.1
-
-  # 🛠️ Utilidades
-  intl: ^0.20.2
+  
+  # Utilidades
   uuid: ^4.2.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true
   
-  # 📁 Assets
+  # Generación de localizaciones - AGREGADO
+  generate: true
+  
   assets:
     - assets/images/
     - assets/icons/

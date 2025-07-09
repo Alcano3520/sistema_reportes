@@ -1,0 +1,7 @@
+# l10n.yaml - Archivo de configuración de localizaciones
+# Crear este archivo en la raíz del proyecto (mismo nivel que pubspec.yaml)
+
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations

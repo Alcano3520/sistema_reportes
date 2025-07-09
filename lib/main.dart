@@ -1,6 +1,7 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'core/config/supabase_config.dart';
 import 'core/providers/auth_provider.dart';
@@ -39,6 +40,20 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Sistema de Reportes',
+        
+        // ===== LOCALIZACIONES AGREGADAS =====
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('es', 'ES'), // Español
+          Locale('en', 'US'), // Inglés
+        ],
+        locale: const Locale('es', 'ES'), // Idioma por defecto
+        // ===================================
+        
         theme: ThemeData(
           primarySwatch: Colors.blue,
           fontFamily: 'Roboto',
@@ -60,7 +75,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
           
-          // Card theme - CORREGIDO
+          // Card theme
           cardTheme: const CardThemeData(
             elevation: 2,
             shape: RoundedRectangleBorder(
@@ -108,12 +123,6 @@ class MyApp extends StatelessWidget {
         
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
-        
-        // Configuración de localización (opcional)
-        supportedLocales: const [
-          Locale('es', 'ES'),
-          Locale('en', 'US'),
-        ],
       ),
     );
   }
@@ -129,6 +138,18 @@ class ErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Error - Sistema de Reportes',
+      
+      // Localizaciones también para la app de error
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
+      ],
+      
       home: Scaffold(
         backgroundColor: Colors.red.shade50,
         body: Center(
@@ -213,7 +234,6 @@ class ErrorApp extends StatelessWidget {
                 // Botón para reintentar
                 ElevatedButton(
                   onPressed: () {
-                    // En una app real, aquí se podría reinicializar
                     print('🔄 Intentando reinicializar...');
                   },
                   style: ElevatedButton.styleFrom(
