@@ -60,11 +60,11 @@ class MyApp extends StatelessWidget {
             ),
           ),
           
-          // Card theme
-          cardTheme: CardTheme(
+          // Card theme - CORREGIDO
+          cardTheme: const CardThemeData(
             elevation: 2,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.all(Radius.circular(12)),
             ),
           ),
           
@@ -84,6 +84,24 @@ class MyApp extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 2),
+            ),
+          ),
+          
+          // Button theme
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          
+          // Floating Action Button theme
+          floatingActionButtonTheme: const FloatingActionButtonThemeData(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
             ),
           ),
         ),
@@ -192,11 +210,11 @@ class ErrorApp extends StatelessWidget {
                 
                 const SizedBox(height: 24),
                 
-                // Botón para reintentar (cierra la app)
+                // Botón para reintentar
                 ElevatedButton(
                   onPressed: () {
                     // En una app real, aquí se podría reinicializar
-                    // Por ahora, solo mostramos el mensaje
+                    print('🔄 Intentando reinicializar...');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red.shade600,
@@ -206,7 +224,7 @@ class ErrorApp extends StatelessWidget {
                       vertical: 12,
                     ),
                   ),
-                  child: const Text('Cerrar Aplicación'),
+                  child: const Text('Reintentar'),
                 ),
               ],
             ),
